@@ -27,6 +27,7 @@
     min-height: 100vh;
     overflow-x: hidden;
   }
+  a { text-decoration: none; }
   body::before {
     content: '';
     position: fixed;
@@ -325,17 +326,17 @@
   <div class="splash-sub">portfolio</div>
   <div class="splash-loader-wrap">
     <div class="splash-loader-bar"><div class="splash-loader-fill"></div></div>
-    <div class="splash-loader-label">LOADING</div>
+    <div class="splash-loader-label">ŁADOWANIE</div>
   </div>
   <div class="splash-logs" id="splashLogs"></div>
-  <div class="splash-initialized" id="splashInit">✓ INITIALIZED</div>
+  <div class="splash-initialized" id="splashInit">✓ ZAINICJALIZOWANO</div>
 </div>
 <div class="corner corner--tl"></div>
 <div class="corner corner--br"></div>
 
 <main>
   <div class="hero">
-    <div class="hero-label">// developer · 15 lat</div>
+    <div class="hero-label">// developer · <span id="age"></span> lat</div>
     <div class="hero-name">Bartek</div>
     <p class="hero-desc">
       Tworzę strony internetowe i narzędzia deweloperskie. Specjalizuję się w HTML, CSS i Firebase. Założyciel marki BK  zestawu narzędzi open-source dla developerów.
@@ -363,15 +364,15 @@
     <div class="project">
       <div class="project-header">
         <div class="project-name"><span class="project-accent yellow"></span>BKServe</div>
-        <div class="project-status">w budowie</div>
+        <div class="project-status"style="color: green;"><a style="text-decoration: none;" href="https://github.com/Polaczeq00-h/bkserve" target="_blank" rel="noreferrer noopener">Dostępne nocne buildy</a></div>
       </div>
-      <p class="project-desc">Narzędzie CLI/GUI do zarządzania Firebase  hosting, deploy, auth  bez klikania w konsolę Google. Auto-deploy po czasie bezczynności.</p>
+      <p class="project-desc">Narzędzie CLI/GUI do zarządzania Firebase — hosting, deploy, auth — bez klikania w konsolę Google. Auto-deploy po czasie bezczynności.</p>
     </div>
 
     <div class="project">
       <div class="project-header">
         <div class="project-name"><span class="project-accent blue"></span>BKPuller</div>
-        <div class="project-status">w budowie</div>
+        <div class="project-status">w trakcie</div>
       </div>
       <p class="project-desc">Terminal TUI do przeglądania i pobierania konkretnych plików z repozytoriów GitHub — bez klonowania całego repo.</p>
     </div>
@@ -399,11 +400,11 @@
 
 <script>
   const splashLogs = [
-    { delay: 1200, cls: 'ok',   text: '[ok]   loading portfolio...' },
-    { delay: 1600, cls: 'ok',   text: '[ok]   fonts ready' },
+    { delay: 1200, cls: 'ok',   text: '[ok]   ładowanie portfolio...' },
+    { delay: 1600, cls: 'ok',   text: '[ok]   czcionki gotowe' },
     { delay: 2000, cls: 'ok',   text: '[ok]   BK brand v0.1.0' },
-    { delay: 2400, cls: 'warn', text: '[warn] still in progress' },
-    { delay: 2800, cls: 'ok',   text: '[ok]   all systems go' },
+    { delay: 2400, cls: 'warn', text: '[warn] nadal w trakcie' },
+    { delay: 2800, cls: 'ok',   text: '[ok]   wszystkie systemy gotowe' },
   ];
   const splashContainer = document.getElementById('splashLogs');
   splashLogs.forEach(({ delay, cls, text }) => {
@@ -435,6 +436,16 @@
     });
   }, { threshold: 0.1 });
   sections.forEach(s => obs.observe(s));
+
+  const birthDate = new Date('2010-11-28');
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  const dayDiff = today.getDate() - birthDate.getDate();
+  if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+      age--;
+  }
+  document.getElementById('age').textContent = age;
 </script>
 </body>
 </html>

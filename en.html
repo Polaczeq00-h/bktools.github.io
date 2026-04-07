@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bartek — Developer</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-<style>
-  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+<style>  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
     --bg: #0a0a0a;
@@ -27,6 +26,7 @@
     min-height: 100vh;
     overflow-x: hidden;
   }
+  a { text-decoration: none; }
   body::before {
     content: '';
     position: fixed;
@@ -317,8 +317,6 @@
   @keyframes blink2 { 0%,80%,100% { opacity:1; } 20%,60% { opacity:0; } }
 </style>
 </head>
-<body>
-
 <div id="splash">
   <div class="splash-glow"></div>
   <div class="splash-bk">BK</div>
@@ -335,7 +333,7 @@
 
 <main>
   <div class="hero">
-    <div class="hero-label">// developer · 15 y/o</div>
+    <div class="hero-label">// developer · <span id="age"></span> y/o</div>
     <div class="hero-name">Bartek</div>
     <p class="hero-desc">
       I build websites and developer tools. Specializing in HTML, CSS and Firebase. Founder of BK — an open-source toolset for developers.
@@ -363,7 +361,7 @@
     <div class="project">
       <div class="project-header">
         <div class="project-name"><span class="project-accent yellow"></span>BKServe</div>
-        <div class="project-status">in progress</div>
+        <div class="project-status"style="color: green;"><a style="text-decoration: none;" href="https://github.com/Polaczeq00-h/bkserve" target="_blank" rel="noreferrer noopener">Nightly builds available</a></div>
       </div>
       <p class="project-desc">CLI/GUI tool for Firebase management — hosting, deploy, auth — without clicking through Google Console. Auto-deploy on idle timeout.</p>
     </div>
@@ -371,7 +369,7 @@
     <div class="project">
       <div class="project-header">
         <div class="project-name"><span class="project-accent blue"></span>BKPuller</div>
-        <div class="project-status">in progress</div>
+        <div class="project-status">still in progress</div>
       </div>
       <p class="project-desc">Terminal TUI for browsing and downloading specific files from GitHub repositories — without cloning the whole repo.</p>
     </div>
@@ -435,6 +433,18 @@
     });
   }, { threshold: 0.1 });
   sections.forEach(s => obs.observe(s));
+
+const birthDate = new Date('2010-11-28');
+const today = new Date();
+
+let age = today.getFullYear() - birthDate.getFullYear();
+const monthDiff = today.getMonth() - birthDate.getMonth();
+const dayDiff = today.getDate() - birthDate.getDate();
+if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+    age--;
+}
+
+document.getElementById('age').textContent = age;
 </script>
 </body>
 </html>
