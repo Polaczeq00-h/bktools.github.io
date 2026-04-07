@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BK — Redirect</title>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0a0a0a;
+    color: #e8e8e8;
+    font-family: 'Space Mono', monospace;
+    text-align: center;
+    padding: 24px;
+  }
+  .card {
+    max-width: 520px;
+    width: 100%;
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 32px;
+    background: rgba(17,17,17,0.95);
+    box-shadow: 0 24px 80px rgba(0,0,0,0.35);
+  }
+  h1 {
+    font-size: clamp(26px, 6vw, 44px);
+    letter-spacing: 0.2em;
+    margin-bottom: 20px;
+  }
+  p {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #c4c4c4;
+    margin-bottom: 20px;
+  }
+  .links {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .links a,
+  .links button {
+    display: inline-block;
+    padding: 10px 18px;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    background: none;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    font: inherit;
+  }
+  .links a:hover,
+  .links button:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: #fff;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Choose your version</h1>
+    <p id="status">Defaulting to English. If Poland is detected, you can choose and we will remember your preference.</p>
+    <p>Location is used only to suggest the correct language version.</p>
+    <div class="links" id="choiceLinks" style="display:none;">
+      <button type="button" onclick="saveAndGo('pl')">PL</button>
+      <button type="button" onclick="saveAndGo('en')">EN</button>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'bk-language-choice';
+
+    function isPoland(lat, lon) {
+      return lat >= 49 && lat <= 55.2 && lon >= 14.1 && lon <= 24.2;
+    }
+
+    function go(lang) {
+      window.location.href = lang === 'pl' ? 'pl.html' : 'en.html';
+    }
+
+    function saveChoice(lang) {
+      try {
+        localStorage.setItem(STORAGE_KEY, lang);
+      } catch (e) {
+        // ignore if storage is unavailable
+      }
+    }
+
+    function saveAndGo(lang) {
+      saveChoice(lang);
+      go(lang);
+    }
+
+    function showChoicePrompt(message) {
+      document.getElementById('status').textContent = message;
+      document.getElementById('choiceLinks').style.display = 'flex';
+    }
+
+    function fallback() {
+      document.getElementById('status').textContent = 'Geolocation unavailable; defaulting to English.';
+      setTimeout(() => go('en'), 900);
+    }
+
+    const stored = (() => {
+      try {
+        return localStorage.getItem(STORAGE_KEY);
+      } catch (e) {
+        return null;
+      }
+    })();
+
+    if (stored === 'pl' || stored === 'en') {
+      go(stored);
+    } else if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        ({ coords }) => {
+          if (isPoland(coords.latitude, coords.longitude)) {
+            showChoicePrompt('Polish location detected. Choose your version and we will remember it.');
+          } else {
+            document.getElementById('status').textContent = 'Location detected outside Poland; redirecting to English.';
+            setTimeout(() => go('en'), 700);
+          }
+        },
+        () => {
+          fallback();
+        },
+        { timeout: 6000 }
+      );
+    } else {
+      document.getElementById('status').textContent = 'Geolocation is not supported; redirecting to English.';
+      setTimeout(() => go('en'), 900);
+    }
+  </script>
+</body>
+</html>
