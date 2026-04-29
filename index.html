@@ -1,140 +1,839 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl" data-lang="pl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BK — Redirect</title>
+<title>Bartek — Developer</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --border: #1f1f1f;
+    --text: #e8e8e8;
+    --muted: #444;
+    --accent: #ffffff;
+    --dim: #888;
+    --yellow: #e8ff47;
+    --blue: #47c8ff;
+    --green: #47ffb2;
+  }
+
+  html { scroll-behavior: smooth; }
+
   body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
     min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  a { text-decoration: none; }
+
+  /* CRT scanlines */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 3px,
+      rgba(255,255,255,0.012) 3px, rgba(255,255,255,0.012) 4px
+    );
+    pointer-events: none;
+    z-index: 500;
+  }
+
+  /* Corner brackets */
+  .corner {
+    position: fixed;
+    width: 18px;
+    height: 18px;
+    opacity: 0.25;
+    z-index: 600;
+    transition: opacity 0.3s;
+  }
+  .corner:hover { opacity: 0.6; }
+  .corner--tl { top: 16px; left: 16px; border-top: 1px solid #fff; border-left: 1px solid #fff; }
+  .corner--tr { top: 16px; right: 16px; border-top: 1px solid #fff; border-right: 1px solid #fff; }
+  .corner--bl { bottom: 16px; left: 16px; border-bottom: 1px solid #fff; border-left: 1px solid #fff; }
+  .corner--br { bottom: 16px; right: 16px; border-bottom: 1px solid #fff; border-right: 1px solid #fff; }
+
+  /* ───── NAV ───── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 400;
     display: flex;
     align-items: center;
-    justify-content: center;
-    background: #0a0a0a;
-    color: #e8e8e8;
-    font-family: 'Space Mono', monospace;
-    text-align: center;
-    padding: 24px;
+    justify-content: space-between;
+    padding: 0 24px;
+    height: 52px;
+    background: rgba(10,10,10,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
   }
-  .card {
-    max-width: 520px;
-    width: 100%;
-    border: 1px solid rgba(255,255,255,0.08);
-    padding: 32px;
-    background: rgba(17,17,17,0.95);
-    box-shadow: 0 24px 80px rgba(0,0,0,0.35);
+
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 0.1em;
+    color: var(--accent);
   }
-  h1 {
-    font-size: clamp(26px, 6vw, 44px);
-    letter-spacing: 0.2em;
-    margin-bottom: 20px;
-  }
-  p {
-    font-size: 14px;
-    line-height: 1.8;
-    color: #c4c4c4;
-    margin-bottom: 20px;
-  }
-  .links {
+
+  .nav-right {
     display: flex;
-    justify-content: center;
-    gap: 12px;
-    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px;
   }
-  .links a,
-  .links button {
-    display: inline-block;
-    padding: 10px 18px;
-    border: 1px solid rgba(255,255,255,0.15);
-    color: #fff;
+
+  /* Language switcher */
+  .lang-switch {
+    display: flex;
+    gap: 2px;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+  }
+  .lang-btn {
     background: none;
-    text-decoration: none;
+    border: 1px solid transparent;
+    color: var(--muted);
     cursor: pointer;
-    transition: background 0.2s, border-color 0.2s;
-    font: inherit;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    padding: 3px 7px;
+    transition: color 0.2s, border-color 0.2s;
   }
-  .links a:hover,
-  .links button:hover {
-    background: rgba(255,255,255,0.08);
-    border-color: #fff;
+  .lang-btn.active {
+    color: var(--accent);
+    border-color: var(--border);
+  }
+  .lang-btn:hover { color: var(--accent); }
+
+  /* Hamburger */
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 4px;
+    z-index: 700;
+  }
+  .hamburger span {
+    display: block;
+    height: 1px;
+    background: var(--accent);
+    transition: transform 0.3s cubic-bezier(0.22,1,0.36,1), opacity 0.2s;
+    transform-origin: center;
+  }
+  .hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  .hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+  /* Mobile drawer */
+  .mobile-menu {
+    position: fixed;
+    inset: 0;
+    background: rgba(10,10,10,0.98);
+    z-index: 650;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .mobile-menu.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .mobile-menu a {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    transition: color 0.2s;
+  }
+  .mobile-menu a:hover { color: var(--accent); }
+  .mobile-lang {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .mobile-lang button {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--dim);
+    cursor: pointer;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    padding: 6px 14px;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .mobile-lang button.active { color: var(--accent); border-color: #555; }
+
+  /* ───── SPLASH ───── */
+  #splash {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.6s ease;
+  }
+  #splash.hide { opacity: 0; pointer-events: none; }
+
+  .splash-bk {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(80px, 16vw, 160px);
+    color: var(--accent);
+    line-height: 0.85;
+    letter-spacing: 0.05em;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(-30px);
+    animation: rise 0.6s cubic-bezier(0.22,1,0.36,1) 0.2s forwards;
+    position: relative;
+    z-index: 2;
+  }
+  .splash-sub {
+    font-size: clamp(14px, 2.5vw, 22px);
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(8px);
+    animation: rise 0.5s cubic-bezier(0.22,1,0.36,1) 0.75s forwards;
+    position: relative;
+  }
+  .splash-sub::before {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; top: -8px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #fff, transparent);
+    opacity: 0;
+    animation: fadeIn 0.4s ease 0.9s forwards;
+  }
+  .splash-glow {
+    position: absolute;
+    width: 400px; height: 60px;
+    background: radial-gradient(ellipse at center, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.05) 40%, transparent 70%);
+    bottom: 52%; left: 50%;
+    transform: translateX(-50%);
+    filter: blur(8px);
+    opacity: 0;
+    animation: fadeIn 1s ease 0.5s forwards;
+  }
+  .splash-loader-wrap {
+    position: absolute;
+    bottom: 48px; left: 50%;
+    transform: translateX(-50%);
+    width: 140px;
+    opacity: 0;
+    animation: fadeIn 0.3s ease 1.1s forwards;
+  }
+  .splash-loader-bar { height: 1px; background: #1f1f1f; position: relative; overflow: hidden; }
+  .splash-loader-fill {
+    position: absolute; inset: 0;
+    background: #fff;
+    transform: translateX(-100%);
+    animation: load 1.5s cubic-bezier(0.4,0,0.2,1) 1.2s forwards;
+  }
+  .splash-loader-label { font-size: 9px; color: rgba(255,255,255,0.2); letter-spacing: 0.3em; text-align: center; margin-top: 8px; }
+  .splash-logs { position: absolute; bottom: 80px; left: 32px; font-size: 11px; color: rgba(255,255,255,0.25); letter-spacing: 0.05em; line-height: 1.8; }
+  .splash-log-line { opacity: 0; transform: translateX(-6px); transition: opacity 0.2s, transform 0.2s; }
+  .splash-log-line.ok .tag { color: #e8e8e8; }
+  .splash-log-line.warn .tag { color: #ff9f47; }
+  .splash-initialized { position: absolute; bottom: 80px; right: 32px; font-size: 12px; letter-spacing: 0.15em; color: #fff; opacity: 0; }
+
+  /* ───── MAIN ───── */
+  main {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 120px 24px 80px;
+  }
+
+  /* Hero */
+  .hero {
+    margin-bottom: 80px;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: rise 0.7s cubic-bezier(0.22,1,0.36,1) 0.1s forwards;
+  }
+  .hero-label {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+  .hero-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(64px, 14vw, 110px);
+    line-height: 0.88;
+    letter-spacing: 0.02em;
+    color: var(--accent);
+    margin-bottom: 28px;
+    position: relative;
+  }
+  /* Glitch effect on hover */
+  .hero-name::before, .hero-name::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    clip-path: polygon(0 30%, 100% 30%, 100% 50%, 0 50%);
+  }
+  .hero-name::before { color: var(--blue); transform: translateX(-3px); }
+  .hero-name::after  { color: var(--yellow); transform: translateX(3px); clip-path: polygon(0 65%, 100% 65%, 100% 80%, 0 80%); }
+  .hero-name:hover::before { animation: glitch1 0.4s steps(1) forwards; }
+  .hero-name:hover::after  { animation: glitch2 0.4s steps(1) forwards; }
+
+  .hero-desc {
+    font-size: 13px;
+    line-height: 1.9;
+    color: var(--dim);
+    max-width: 460px;
+    border-left: 1px solid var(--border);
+    padding-left: 16px;
+  }
+
+  /* Sections */
+  section {
+    margin-bottom: 64px;
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  section.visible {
+    animation: rise 0.55s cubic-bezier(0.22,1,0.36,1) forwards;
+  }
+
+  .section-label {
+    font-size: 9px;
+    letter-spacing: 0.4em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+
+  /* Skills */
+  .skills-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .skill-tag {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--dim);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    cursor: default;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .skill-tag::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    opacity: 0;
+    transform: translateY(100%);
+    transition: transform 0.25s cubic-bezier(0.22,1,0.36,1), opacity 0.25s;
+  }
+  .skill-tag:hover::before { transform: translateY(0); opacity: 0.06; }
+  .skill-tag:hover { color: var(--accent); border-color: #444; }
+
+  /* Projects */
+  .project {
+    border: 1px solid var(--border);
+    padding: 22px;
+    margin-bottom: 12px;
+    transition: border-color 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .project::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 2px; height: 0;
+    background: var(--accent);
+    transition: height 0.35s cubic-bezier(0.22,1,0.36,1);
+  }
+  .project::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .project:hover { border-color: #2a2a2a; }
+  .project:hover::before { height: 100%; }
+  .project:hover::after { opacity: 1; }
+
+  .project-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+  .project-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .project-status {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 3px 8px;
+    align-self: center;
+    white-space: nowrap;
+  }
+  .project-status a { color: inherit; text-decoration: none; }
+  .project-status.live { color: #47ffb2; border-color: rgba(71,255,178,0.2); }
+  .project-desc {
+    font-size: 11px;
+    line-height: 1.75;
+    color: var(--dim);
+  }
+  .dot {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot.yellow { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+  .dot.blue   { background: var(--blue);   box-shadow: 0 0 6px var(--blue); }
+
+  /* Contact */
+  .contact-link {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 12px;
+    color: var(--dim);
+    text-decoration: none;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    transition: color 0.2s, padding-left 0.2s;
+    position: relative;
+  }
+  .contact-link:first-child { border-top: 1px solid var(--border); }
+  .contact-link:hover { color: var(--accent); padding-left: 6px; }
+  .contact-link .icon {
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+  }
+  .contact-link:hover .icon { opacity: 1; }
+  .contact-link .arrow {
+    margin-left: auto;
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+    transform: translateX(-6px);
+    font-size: 14px;
+  }
+  .contact-link:hover .arrow { opacity: 1; transform: translateX(0); }
+  .contact-badge {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    color: var(--muted);
+    margin-left: auto;
+    margin-right: 8px;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .contact-link:hover .contact-badge { color: var(--dim); border-color: #333; }
+
+  /* Footer */
+  footer {
+    margin-top: 80px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    opacity: 0;
+    animation: rise 0.4s ease 1.4s forwards;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .footer-pulse {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .footer-pulse::before {
+    content: '';
+    display: inline-block;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+    animation: pulse 2s ease infinite;
+  }
+
+  /* Scroll progress bar */
+  #progress-bar {
+    position: fixed;
+    top: 52px; left: 0;
+    height: 1px;
+    background: #fff;
+    width: 0%;
+    z-index: 450;
+    transition: width 0.05s linear;
+    opacity: 0.5;
+  }
+
+  @keyframes rise     { to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn   { to { opacity: 1; } }
+  @keyframes load     { to { transform: translateX(0); } }
+  @keyframes blink2   { 0%,80%,100% { opacity:1; } 20%,60% { opacity:0; } }
+  @keyframes pulse    { 0%,100% { opacity:1; box-shadow: 0 0 6px var(--green); } 50% { opacity:0.3; box-shadow: 0 0 2px var(--green); } }
+  @keyframes glitch1  { 0%,100% { opacity:0; } 20%,60% { opacity:0.7; } }
+  @keyframes glitch2  { 0%,100% { opacity:0; } 30%,70% { opacity:0.7; } }
+
+  /* ───── RESPONSIVE ───── */
+  @media (max-width: 600px) {
+    .hamburger { display: flex; }
+    .nav-right .lang-switch { display: none; }
+
+    main { padding: 90px 20px 60px; }
+
+    .hero { margin-bottom: 56px; }
+
+    .project-header { flex-direction: column; gap: 8px; }
+    .project-status { align-self: flex-start; }
+
+    .contact-link { font-size: 11px; }
+
+    footer { flex-direction: column; gap: 8px; text-align: center; }
   }
 </style>
 </head>
 <body>
-  <div class="card">
-    <h1>Choose your version</h1>
-    <p id="status">Defaulting to English. If Poland is detected, you can choose and we will remember your preference.</p>
-    <p>Location is used only to suggest the correct language version.</p>
-    <div class="links" id="choiceLinks" style="display:none;">
-      <button type="button" onclick="saveAndGo('pl')">PL</button>
-      <button type="button" onclick="saveAndGo('en')">EN</button>
+
+<!-- Splash -->
+<div id="splash">
+  <div class="splash-glow"></div>
+  <div class="splash-bk">BK</div>
+  <div class="splash-sub">portfolio</div>
+  <div class="splash-loader-wrap">
+    <div class="splash-loader-bar"><div class="splash-loader-fill"></div></div>
+    <div class="splash-loader-label" id="loadLabel">ŁADOWANIE</div>
+  </div>
+  <div class="splash-logs" id="splashLogs"></div>
+  <div class="splash-initialized" id="splashInit">✓ ZAINICJALIZOWANO</div>
+</div>
+
+<!-- Scroll progress -->
+<div id="progress-bar"></div>
+
+<!-- Corners -->
+<div class="corner corner--tl"></div>
+<div class="corner corner--tr"></div>
+<div class="corner corner--bl"></div>
+<div class="corner corner--br"></div>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-logo">BK</div>
+  <div class="nav-right">
+    <div class="lang-switch">
+      <button class="lang-btn active" id="btn-pl" onclick="setLang('pl')">PL</button>
+      <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
     </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- Mobile menu -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#skills" onclick="closeMenu()" data-i18n="nav-skills">Umiejętności</a>
+  <a href="#projects" onclick="closeMenu()" data-i18n="nav-projects">Projekty</a>
+  <a href="#contact" onclick="closeMenu()" data-i18n="nav-contact">Kontakt</a>
+  <div class="mobile-lang">
+    <button class="active" id="mbtn-pl" onclick="setLang('pl');closeMenu()">PL</button>
+    <button id="mbtn-en" onclick="setLang('en');closeMenu()">EN</button>
+  </div>
+</div>
+
+<main>
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-label">// developer · <span id="age"></span> <span data-i18n="age-suffix">lat</span></div>
+    <div class="hero-name" data-text="Bartek">Bartek</div>
+    <p class="hero-desc" data-i18n="hero-desc">
+      Tworzę strony internetowe i narzędzia deweloperskie. Specjalizuję się w HTML, CSS i Firebase. Założyciel marki BK — zestawu narzędzi open-source dla developerów.
+    </p>
   </div>
 
-  <script>
-    const STORAGE_KEY = 'bk-language-choice';
+  <!-- Skills -->
+  <section id="skills">
+    <div class="section-label" data-i18n="label-skills">umiejętności</div>
+    <div class="skills-grid">
+      <div class="skill-tag">HTML</div>
+      <div class="skill-tag">CSS</div>
+      <div class="skill-tag">JavaScript</div>
+      <div class="skill-tag">Firebase</div>
+      <div class="skill-tag">Discord Bots</div>
+      <div class="skill-tag">Node.js</div>
+      <div class="skill-tag">Git</div>
+      <div class="skill-tag">@keyframes</div>
+      <div class="skill-tag">REST API</div>
+    </div>
+  </section>
 
-    function isPoland(lat, lon) {
-      return lat >= 49 && lat <= 55.2 && lon >= 14.1 && lon <= 24.2;
+  <!-- Projects -->
+  <section id="projects">
+    <div class="section-label" data-i18n="label-projects">projekty</div>
+
+    <div class="project">
+      <div class="project-header">
+        <div class="project-name"><span class="dot yellow"></span>BKServe</div>
+        <div class="project-status live">
+          <a href="https://github.com/Polaczeq00-h/bkserve" target="_blank" rel="noreferrer noopener" data-i18n="proj1-status">Dostępne nightly buildy</a>
+        </div>
+      </div>
+      <p class="project-desc" data-i18n="proj1-desc">Narzędzie CLI/GUI do zarządzania Firebase — hosting, deploy, auth — bez klikania w konsolę Google. Auto-deploy po czasie bezczynności.</p>
+    </div>
+
+    <div class="project">
+      <div class="project-header">
+        <div class="project-name"><span class="dot blue"></span>BKPuller</div>
+        <div class="project-status" data-i18n="proj2-status">w trakcie</div>
+      </div>
+      <p class="project-desc" data-i18n="proj2-desc">Terminal TUI do przeglądania i pobierania konkretnych plików z repozytoriów GitHub — bez klonowania całego repo.</p>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact">
+    <div class="section-label" data-i18n="label-contact">kontakt</div>
+
+    <a class="contact-link" href="mailto:bartlomiej.sokulski777@gmail.com">
+      <span class="icon">✉</span>
+      <span>bartlomiej.sokulski777@gmail.com</span>
+      <span class="arrow">→</span>
+    </a>
+    <a class="contact-link" href="https://github.com/Polaczeq00-h" target="_blank" rel="noreferrer noopener">
+      <span class="icon">◈</span>
+      <span>GitHub</span>
+      <span class="contact-badge">open source</span>
+      <span class="arrow">→</span>
+    </a>
+    <a class="contact-link" href="https://ko-fi.com/bartbk" target="_blank" rel="noreferrer noopener">
+      <span class="icon">☕</span>
+      <span>Ko-fi</span>
+      <span class="contact-badge" data-i18n="badge-support">wsparcie</span>
+      <span class="arrow">→</span>
+    </a>
+    <a class="contact-link" href="https://www.freelancer.pl/u/bartaomiejsok" target="_blank" rel="noreferrer noopener">
+      <span class="icon">◎</span>
+      <span>Freelancer.pl</span>
+      <span class="contact-badge" data-i18n="badge-hire">zatrudnij mnie</span>
+      <span class="arrow">→</span>
+    </a>
+  </section>
+
+  <footer>
+    <span>© 2026 Bartek</span>
+    <span class="footer-pulse" data-i18n="footer-brand">BK brand v0.1.0</span>
+  </footer>
+</main>
+
+<script>
+  /* ── i18n ── */
+  const strings = {
+    pl: {
+      'age-suffix':     'lat',
+      'hero-desc':      'Tworzę strony internetowe i narzędzia deweloperskie. Specjalizuję się w HTML, CSS i Firebase. Założyciel marki BK — zestawu narzędzi open-source dla developerów.',
+      'label-skills':   'umiejętności',
+      'label-projects': 'projekty',
+      'label-contact':  'kontakt',
+      'proj1-status':   'Dostępne nightly buildy',
+      'proj1-desc':     'Narzędzie CLI/GUI do zarządzania Firebase — hosting, deploy, auth — bez klikania w konsolę Google. Auto-deploy po czasie bezczynności.',
+      'proj2-status':   'w trakcie',
+      'proj2-desc':     'Terminal TUI do przeglądania i pobierania konkretnych plików z repozytoriów GitHub — bez klonowania całego repo.',
+      'nav-skills':     'Umiejętności',
+      'nav-projects':   'Projekty',
+      'nav-contact':    'Kontakt',
+      'badge-support':  'wsparcie',
+      'badge-hire':     'zatrudnij mnie',
+      'footer-brand':   'BK brand v0.1.0',
+      'splash-label':   'ŁADOWANIE',
+      'splash-init':    '✓ ZAINICJALIZOWANO',
+      'splash-logs': [
+        { cls: 'ok',   text: '[ok]   ładowanie portfolio...' },
+        { cls: 'ok',   text: '[ok]   czcionki gotowe' },
+        { cls: 'ok',   text: '[ok]   BK brand v0.1.0' },
+        { cls: 'warn', text: '[warn] nadal w trakcie' },
+        { cls: 'ok',   text: '[ok]   wszystkie systemy gotowe' },
+      ]
+    },
+    en: {
+      'age-suffix':     'y/o',
+      'hero-desc':      'I build websites and developer tools. Specializing in HTML, CSS and Firebase. Founder of BK — an open-source toolset for developers.',
+      'label-skills':   'skills',
+      'label-projects': 'projects',
+      'label-contact':  'contact',
+      'proj1-status':   'Nightly builds available',
+      'proj1-desc':     'CLI/GUI tool for Firebase management — hosting, deploy, auth — without clicking through Google Console. Auto-deploy on idle timeout.',
+      'proj2-status':   'still in progress',
+      'proj2-desc':     'Terminal TUI for browsing and downloading specific files from GitHub repositories — without cloning the whole repo.',
+      'nav-skills':     'Skills',
+      'nav-projects':   'Projects',
+      'nav-contact':    'Contact',
+      'badge-support':  'support',
+      'badge-hire':     'hire me',
+      'footer-brand':   'BK brand v0.1.0',
+      'splash-label':   'LOADING',
+      'splash-init':    '✓ INITIALIZED',
+      'splash-logs': [
+        { cls: 'ok',   text: '[ok]   loading portfolio...' },
+        { cls: 'ok',   text: '[ok]   fonts ready' },
+        { cls: 'ok',   text: '[ok]   BK brand v0.1.0' },
+        { cls: 'warn', text: '[warn] still in progress' },
+        { cls: 'ok',   text: '[ok]   all systems go' },
+      ]
     }
+  };
 
-    function go(lang) {
-      window.location.href = lang === 'pl' ? 'pl.html' : 'en.html';
-    }
+  let currentLang = localStorage.getItem('bk-lang') || 'pl';
 
-    function saveChoice(lang) {
-      try {
-        localStorage.setItem(STORAGE_KEY, lang);
-      } catch (e) {
-        // ignore if storage is unavailable
+  function setLang(lang) {
+    currentLang = lang;
+    localStorage.setItem('bk-lang', lang);
+    document.documentElement.lang = lang;
+    document.documentElement.dataset.lang = lang;
+
+    const s = strings[lang];
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.dataset.i18n;
+      if (s[key] !== undefined) el.textContent = s[key];
+    });
+
+    // lang buttons
+    document.getElementById('btn-pl').classList.toggle('active', lang === 'pl');
+    document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+    document.getElementById('mbtn-pl').classList.toggle('active', lang === 'pl');
+    document.getElementById('mbtn-en').classList.toggle('active', lang === 'en');
+  }
+
+  /* ── Age ── */
+  const birthDate = new Date('2010-11-28');
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  if (today.getMonth() < birthDate.getMonth() ||
+     (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate())) age--;
+  document.getElementById('age').textContent = age;
+
+  /* ── Splash ── */
+  function runSplash() {
+    const s = strings[currentLang];
+    document.getElementById('loadLabel').textContent = s['splash-label'];
+    document.getElementById('splashInit').textContent = s['splash-init'];
+
+    const container = document.getElementById('splashLogs');
+    s['splash-logs'].forEach(({ cls, text }, i) => {
+      setTimeout(() => {
+        const line = document.createElement('div');
+        line.className = `splash-log-line ${cls}`;
+        const tag = text.match(/\[.*?\]/)[0];
+        line.innerHTML = `<span class="tag">${tag}</span>${text.slice(tag.length)}`;
+        container.appendChild(line);
+        requestAnimationFrame(() => { line.style.opacity='1'; line.style.transform='translateX(0)'; });
+      }, 1200 + i * 400);
+    });
+
+    setTimeout(() => {
+      document.getElementById('splashInit').style.animation = 'blink2 0.8s ease forwards';
+    }, 3100);
+
+    setTimeout(() => {
+      document.getElementById('splash').classList.add('hide');
+      setTimeout(() => document.getElementById('splash').remove(), 600);
+    }, 3800);
+  }
+
+  /* ── Hamburger / mobile menu ── */
+  function toggleMenu() {
+    const h = document.getElementById('hamburger');
+    const m = document.getElementById('mobileMenu');
+    const open = m.classList.toggle('open');
+    h.classList.toggle('open', open);
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
+  function closeMenu() {
+    document.getElementById('hamburger').classList.remove('open');
+    document.getElementById('mobileMenu').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  /* ── Scroll progress ── */
+  const bar = document.getElementById('progress-bar');
+  window.addEventListener('scroll', () => {
+    const total = document.documentElement.scrollHeight - window.innerHeight;
+    bar.style.width = (window.scrollY / total * 100) + '%';
+  });
+
+  /* ── Scroll-reveal sections ── */
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.animationDelay = '0s';
+        e.target.classList.add('visible');
+        obs.unobserve(e.target);
       }
-    }
+    });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('section').forEach(s => obs.observe(s));
 
-    function saveAndGo(lang) {
-      saveChoice(lang);
-      go(lang);
-    }
-
-    function showChoicePrompt(message) {
-      document.getElementById('status').textContent = message;
-      document.getElementById('choiceLinks').style.display = 'flex';
-    }
-
-    function fallback() {
-      document.getElementById('status').textContent = 'Geolocation unavailable; defaulting to English.';
-      setTimeout(() => go('en'), 900);
-    }
-
-    const stored = (() => {
-      try {
-        return localStorage.getItem(STORAGE_KEY);
-      } catch (e) {
-        return null;
-      }
-    })();
-
-    if (stored === 'pl' || stored === 'en') {
-      go(stored);
-    } else if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        ({ coords }) => {
-          if (isPoland(coords.latitude, coords.longitude)) {
-            showChoicePrompt('Polish location detected. Choose your version and we will remember it.');
-          } else {
-            document.getElementById('status').textContent = 'Location detected outside Poland; redirecting to English.';
-            setTimeout(() => go('en'), 700);
-          }
-        },
-        () => {
-          fallback();
-        },
-        { timeout: 6000 }
-      );
-    } else {
-      document.getElementById('status').textContent = 'Geolocation is not supported; redirecting to English.';
-      setTimeout(() => go('en'), 900);
-    }
-  </script>
+  /* ── Init ── */
+  setLang(currentLang);
+  runSplash();
+</script>
 </body>
 </html>
